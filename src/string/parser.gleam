@@ -28,8 +28,11 @@
 ////
 
 import gleam/bool.{Bool}
+import gleam/float.{Float}
 import gleam/function
+import gleam/int.{Int}
 import gleam/list.{Continue, Stop}
+import gleam/option.{Option}
 import gleam/pair
 import gleam/result.{Result, Nil}
 import gleam/string.{String}
@@ -580,6 +583,167 @@ pub fn spaces () -> Parser(Nil) {
         |> map(fn (_) { Nil })
 }
 
+/// <div style="text-align: right;">
+///     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
+///         <small>Spot a typo? Open an issue!</small>
+///     </a>
+/// </div>
+///
+/// A simple integer parser. Under the hood it uses
+/// [`gleam/int.parse`](https://hexdocs.pm/gleam_stdlib/gleam/int/#parse) but
+/// it will only parse simple ints, no octals or hexadecimals and no scientific
+/// notation either.
+///
+/// If you need something yourself you can always build it using the combinators
+/// here, and [pull requests are always welcome](https://github.com/pd-andy/gleam-string-parser/pulls).
+///
+/// <details>
+///     <summary>Example:</summary>
+///
+///     import gleam/result.{Ok, Error}
+///     import gleam/should
+///     import string/parser.{Expected}
+///
+///     pub fn example () {
+///         let parser = parser.int() 
+///             |> parser.map(fn (x) { x * 2 })
+///
+///         parser.run("25", parser)
+///             |> should.equal(Ok(50))
+///     }
+/// </details>
+///
+/// <div style="text-align: right;">
+///     <a href="#">
+///         <small>Back to top ↑</small>
+///     </a>
+/// </div>
+///
+pub fn int () -> Parser(Int) {
+    let is_digit = fn (c) {
+        case c {
+            "0" | "1" | "2" | "3" | "4" -> True
+            "5" | "6" | "7" | "8" | "9" -> True
+            _ -> False
+        }
+    }
+
+    take_if_and_while(is_digit)
+        |> map(int.parse)
+        |> then(from_result)
+}
+
+/// <div style="text-align: right;">
+///     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
+///         <small>Spot a typo? Open an issue!</small>
+///     </a>
+/// </div>
+///
+/// 
+///
+/// <details>
+///     <summary>Example:</summary>
+///
+///     import gleam/result.{Ok, Error}
+///     import gleam/should
+///     import string/parser.{Expected}
+///
+///     pub fn example () {
+///
+///     }
+/// </details>
+///
+/// <div style="text-align: right;">
+///     <a href="#">
+///         <small>Back to top ↑</small>
+///     </a>
+/// </div>
+///
+pub fn float () -> Parser(Float) {
+    let is_digit = fn (c) {
+        case c {
+            "0" | "1" | "2" | "3" | "4" -> True
+            "5" | "6" | "7" | "8" | "9" -> True
+            _ -> False
+        }
+    }
+
+    succeed2(fn (x, y) { string.concat([ x, ".", y ]) })
+        |> keep(take_if_and_while(is_digit))
+        |> drop(string("."))
+        |> keep(take_if_and_while(is_digit))
+        |> map(float.parse)
+        |> then(from_result)
+}
+
+
+// UNWRAPPING OTHER TYPES ------------------------------------------------------
+
+
+/// <div style="text-align: right;">
+///     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
+///         <small>Spot a typo? Open an issue!</small>
+///     </a>
+/// </div>
+///
+/// 
+///
+/// <details>
+///     <summary>Example:</summary>
+///
+///     import gleam/result.{Ok, Error}
+///     import gleam/should
+///     import string/parser.{Expected}
+///
+///     pub fn example () {
+///
+///     }
+/// </details>
+///
+/// <div style="text-align: right;">
+///     <a href="#">
+///         <small>Back to top ↑</small>
+///     </a>
+/// </div>
+///
+pub fn from_option (value: Option(a)) -> Parser(a) {
+    option.map(value, succeed) 
+        // TODO: This needs to be much nicer.
+        |> option.unwrap(fail_with(UnexpectedInput("")))
+}
+
+/// <div style="text-align: right;">
+///     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
+///         <small>Spot a typo? Open an issue!</small>
+///     </a>
+/// </div>
+///
+/// 
+///
+/// <details>
+///     <summary>Example:</summary>
+///
+///     import gleam/result.{Ok, Error}
+///     import gleam/should
+///     import string/parser.{Expected}
+///
+///     pub fn example () {
+///
+///     }
+/// </details>
+///
+/// <div style="text-align: right;">
+///     <a href="#">
+///         <small>Back to top ↑</small>
+///     </a>
+/// </div>
+///
+pub fn from_result (value: Result(a, x)) -> Parser(a) {
+    result.map(value, succeed) 
+        // TODO: This needs to be much nicer.
+        |> result.unwrap(fail_with(UnexpectedInput("")))
+}
+
 
 // PREDICATE PARSERS -----------------------------------------------------------
 
@@ -767,7 +931,7 @@ pub fn take_if (predicate: fn (String) -> Bool) -> Parser(String) {
 /// </div>
 ///
 pub fn take_if_and_while(predicate: fn (String) -> Bool) -> Parser(String) {
-    succeed(string.append)
+    succeed2(string.append)
         |> keep(take_if(predicate))
         |> keep(take_while(predicate))
 }
