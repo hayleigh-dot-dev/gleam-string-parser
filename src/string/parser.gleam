@@ -305,7 +305,7 @@ pub fn succeed4 (f: fn (a, b, c, d) -> e) -> Parser(fn (a) -> fn (b) -> fn (c) -
 ///     pub fn example () {
 ///         let is_not_space = fn (c) { c != " " }
 ///         let parse_four_letter_word = fn (s) {
-///             case string.length(s) {
+///             case string.length(s) == 4 {
 ///                 True -> 
 ///                     parser.succeed(s)
 ///
@@ -354,7 +354,7 @@ pub fn fail (message: String) -> Parser(a) {
 ///     pub fn example () {
 ///         let is_not_space = fn (c) { c != " " }
 ///         let parse_four_letter_word = fn (s) {
-///             case string.length(s) {
+///             case string.length(s) == 4 {
 ///                 True -> 
 ///                     parser.succeed(s)
 ///
