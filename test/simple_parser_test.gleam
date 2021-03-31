@@ -4,7 +4,7 @@ import gleam/io
 import gleam/result.{Nil}
 import gleam/should
 import gleam/string
-import simple/parser.{BadParser}
+import string/parser.{BadParser}
 
 
 // IGNORING INPUT --------------------------------------------------------------

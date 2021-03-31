@@ -1,7 +1,7 @@
 import gleam/int.{Int}
 import gleam/result
 import gleam/should
-import simple/parser.{Parser}
+import string/parser.{Parser}
 
 pub fn calculator_test () {
     let parser = parser.one_of([
