@@ -1,5 +1,5 @@
-{application, simple_parser,
- [{description, "A Gleam project"},
+{application, string_parser,
+ [{description, "A simple parser combinator library written in Gleam."},
   {vsn, "{dev}"},
   {registered, []},
   {applications,

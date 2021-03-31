@@ -1,6 +1,6 @@
-# simple_parser
+# gleam-string-parser
 
-A Gleam project
+A simple parser combinator library built in Gleam.
 
 ## Quick start
 
@@ -19,6 +19,6 @@ this package can be installed by adding `simple_parser` to your `rebar.config` d
 
 ```erlang
 {deps, [
-    simple_parser
+    string_parser
 ]}.
 ```

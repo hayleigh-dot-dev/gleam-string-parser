@@ -1,6 +1,6 @@
-name = "simple_parser"
+name = "string_parser"
 
 # [docs]
 # links = [
-#   { title = 'GitHub', href = 'https://github.com/username/project_name' }
+#   { title = 'GitHub', href = 'https://github.com/pd-andy/gleam-string-parser' }
 # ]
