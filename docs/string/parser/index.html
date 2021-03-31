@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>simple&#x2f;parser - simple_parser</title>
-    <link rel="stylesheet" href="..&#x2f;../index.css?v=0.14.0" type="text/css" />
+    <title>string&#x2f;parser - string_parser</title>
+    <link rel="stylesheet" href="..&#x2f;../index.css?v=0.14.4" type="text/css" />
     <!-- The docs_config.js file is provided by HexDocs and shared
          between multiple versions of the same package. -->
     <script src="..&#x2f;../docs_config.js"></script>
@@ -138,15 +138,15 @@
       </button>
 
       <h2>
-        <a href="..&#x2f;../">simple_parser</a>
+        <a href="..&#x2f;../">string_parser</a>
         <span id="project-version">
-          <span> - v{dev} </span>
+          <span> - v1.0.0 </span>
         </span>
         <script>
           "use strict";
 
           if ("undefined" !== typeof versionNodes) {
-            const currentVersion = "v{dev}";
+            const currentVersion = "v1.0.0";
             if (! versionNodes.find(element => element.version === currentVersion)) {
               versionNodes.unshift({ version: currentVersion, url: "#" });
             }
@@ -197,7 +197,7 @@
         <h2>Modules</h2>
         <ul>
         
-          <li><a href="..&#x2f;../simple&#x2f;parser&#x2f;">simple&#x2f;parser</a></li>
+          <li><a href="..&#x2f;../string&#x2f;parser&#x2f;">string&#x2f;parser</a></li>
         
         </ul>
 
@@ -266,7 +266,7 @@
       <main class="content">
         
 <h1 id="module-name" class="module-name">
-  <a href="#module-name">simple&#x2f;parser</a>
+  <a href="#module-name">string&#x2f;parser</a>
   <svg class="icon icon-gleam-chasse"><use xlink:href="#icon-gleam-chasse"></use></svg>
 </h1>
 <ul>
@@ -276,14 +276,25 @@
 <li><a href="#Error"><code>Error</code></a></li>
 </ul>
 </li>
-<li><strong>Ignoring Input</strong>
+<li><strong>Ignoring input</strong>
 <ul>
 <li><a href="#succeed"><code>succeed</code></a></li>
+<li><a href="#succeed2"><code>succeed2</code></a></li>
+<li><a href="#succeed3"><code>succeed3</code></a></li>
+<li><a href="#succeed4"><code>succeed4</code></a></li>
 <li><a href="#fail"><code>fail</code></a></li>
 <li><a href="#fail_with"><code>fail_with</code></a></li>
 </ul>
 </li>
-<li><strong>Chaining Parsers</strong>
+<li><strong>Primitive parsers</strong>
+<ul>
+<li><a href="#any"><code>any</code></a></li>
+<li><a href="#eof"><code>eof</code></a></li>
+<li><a href="#string"><code>string</code></a></li>
+<li><a href="#spaces"><code>spaces</code></a></li>
+</ul>
+</li>
+<li><strong>Chaining parsers</strong>
 <ul>
 <li><a href="#keep"><code>keep</code></a></li>
 <li><a href="#drop"><code>drop</code></a></li>
@@ -297,7 +308,7 @@
 <li><a href="#one_of"><code>one_of</code></a></li>
 </ul>
 </li>
-<li><strong>Predicate Parsers</strong>
+<li><strong>Predicate parsers</strong>
 <ul>
 <li><a href="#take_if"><code>take_if</code></a></li>
 <li><a href="#take_while"><code>take_while</code></a></li>
@@ -330,6 +341,9 @@
          <small>Spot a typo? Open an issue!</small>
      </a>
  </div>
+<p>A <a href="#Parser"><code>Parser</code></a> might fail for a number of reasons, so we enumerate
+them here. The <code>Custom</code> constructor is useful when used in combination with
+<a href="#then"><code>then</code></a> to give an explanation of why the parser is failing.</p>
 <div style="text-align: right;">
      <a href="#">
          <small>Back to top ↑</small>
@@ -400,28 +414,19 @@
          <small>Spot a typo? Open an issue!</small>
      </a>
  </div>
+<p>A <code>Parser</code> is something that takes a string and attempts to transform it
+into something else, often consuming some or all of the input in the process.</p>
+<p>Parsers can be combined (that’s why they’re called parser combinators) to
+parse more complex structures. You could write a JSON parser, or a CSV parser,
+or even do fancy things like parsing and evaluating simple maths expressions.</p>
 <div style="text-align: right;">
      <a href="#">
          <small>Back to top ↑</small>
      </a>
  </div>
 </div>
-      <pre><code class="hljs gleam">pub type Parser(a) {
-  Parser(fn(String) -&gt; Result(tuple(a, String), Error))
-}</code></pre>
+      <pre><code class="hljs gleam">pub opaque type Parser(a)</code></pre>
       
-      <h3>
-        Constructors
-      </h3>
-      <ul class="constructor-list">
-        
-        <li class="constructor-item">
-          <svg class="icon icon-star"><use xlink:href="#icon-star"></use></svg>
-          <pre class="constructor-name"><code class="hljs gleam">Parser(fn(String) -&gt; Result(tuple(a, String), Error))</code></pre>
-          
-        </li>
-        
-      </ul>
       
     </div>
   </div>
@@ -451,16 +456,23 @@
     </div>
     <pre><code class="hljs gleam">pub fn any() -&gt; Parser(String)</code></pre>
     <div class="rendered-markdown"><div style="text-align: right;">
-     <a href="https://github.com/xxx/yyy/issues">
+     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
          <small>Spot a typo? Open an issue!</small>
      </a>
  </div>
+<p>Parse a single grapheme from the input, it could be anything! If the input
+is an empty string, this will <em>fail</em> with the <code>EOF</code> error. </p>
 <details>
      <summary>Example:</summary>
-<pre><code> import gleam/should
+<pre><code> import gleam/result.{Ok, Error}
+ import gleam/should
+ import string/parser
 
  pub fn example () {
+     let parser = parser.any()
 
+     parser.run(&quot;Hello world&quot;, parser)
+         |&gt; should.equal(Ok(&quot;H&quot;))
  }
 </code></pre>
 </details>
@@ -484,16 +496,48 @@
     </div>
     <pre><code class="hljs gleam">pub fn drop(keeper: Parser(a), ignorer: Parser(b)) -&gt; Parser(a)</code></pre>
     <div class="rendered-markdown"><div style="text-align: right;">
-     <a href="https://github.com/xxx/yyy/issues">
+     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
          <small>Spot a typo? Open an issue!</small>
      </a>
  </div>
+<p>This is one of two combinators used in conjuction with <a href="#succeed"><code>succeed</code></a>
+(the other being <a href="#keep"><code>keep</code></a>) that come together to form a nice pipeline
+API for parsing.</p>
+<p>This combinator runs two parsers in sequence, and then keeps the result of
+the first parser while ignoring the result of the second. This allows us to
+write parsers that enforce a particular structure from the input without
+needing to <em>do</em> anything with the result of those structural parsers.</p>
+<p>Think of parsing JSON, for example. We need to parse opening and closing curly
+braces to know it’s a valid object, and we need to parse the separating colon
+to differentiate between key and value. We need to parse these things, but
+they’re <em>structural</em>, we might want to parse a key/value pair into a Gleam
+tuple; we don’t care about the curly braces or colons but we need to know
+they’re there.</p>
 <details>
      <summary>Example:</summary>
-<pre><code> import gleam/should
+<pre><code> import gleam/result.{Ok, Error}
+ import gleam/should
+ import gleam/string.{String}
+ import gleam/int
+ import string/parser.{UnexpectedInput}
 
  pub fn example () {
+     let digit_parser = parser.any() |&gt; parser.then(fn (c) {
+         case int.parse(c) {
+             Ok(num) -&gt; parser.succeed(num)
+             Error(_) -&gt; parser.fail_with(UnexpectedInput)
+         }
+     })
+     
+     let parser = parser.succeed2(fn (x, y) { x + y })
+         |&gt; parser.keep(digit_parser)
+         |&gt; parser.drop(parser.spaces())
+         |&gt; parser.drop(parser.string(&quot;+&quot;))
+         |&gt; parser.drop(parser.spaces())
+         |&gt; parser.keep(digit_parser)
 
+     parser.run(&quot;1 + 3&quot;, parser)
+         |&gt; should.equal(Ok(4))
  }
 </code></pre>
 </details>
@@ -517,16 +561,30 @@
     </div>
     <pre><code class="hljs gleam">pub fn eof() -&gt; Parser(Nil)</code></pre>
     <div class="rendered-markdown"><div style="text-align: right;">
-     <a href="https://github.com/xxx/yyy/issues">
+     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
          <small>Spot a typo? Open an issue!</small>
      </a>
  </div>
+<p>This parser only succeeds when the input is an empty string. Why is that
+useful? You can use this in combination with your other parsers to ensure
+that you’ve consumed <strong>all</strong> the input.</p>
 <details>
      <summary>Example:</summary>
-<pre><code> import gleam/should
+<pre><code> import gleam/function
+ import gleam/result.{Ok, Error}
+ import gleam/should
+ import string/parser.{Expected}
 
  pub fn example () {
+     let parser = parser.succeed(function.identity)
+         |&gt; parser.keep(parser.string(&quot;Hello&quot;))
+         |&gt; parser.drop(parser.eof())
 
+     parser.run(&quot;Hello&quot;, parser)
+         |&gt; should.equal(Ok(&quot;Hello&quot;))
+
+     parser.run(&quot;Hello world&quot;, parser)
+         |&gt; should.equal(Error(Expected(&quot;End of file&quot;, got: &quot; world&quot;)))
  }
 </code></pre>
 </details>
@@ -550,16 +608,37 @@
     </div>
     <pre><code class="hljs gleam">pub fn fail(message: String) -&gt; Parser(a)</code></pre>
     <div class="rendered-markdown"><div style="text-align: right;">
-     <a href="https://github.com/xxx/yyy/issues">
+     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
          <small>Spot a typo? Open an issue!</small>
      </a>
  </div>
+<p>Create a <a href="#Parser"><code>Parser</code></a> that always fails regardless of the input. This
+uses the <code>Custom</code> error constructor of the <a href="#Error"><code>Error</code></a> type. If you’d
+like to return a more specific error, you can look at <a href="#fail_with"><code>fail_with</code></a>
+instead.</p>
 <details>
      <summary>Example:</summary>
-<pre><code> import gleam/should
+<pre><code> import gleam/result.{Ok, Error}
+ import gleam/should
+ import gleam/string
+ import string/parser.{Custom}
 
  pub fn example () {
+     let is_not_space = fn (c) { c != &quot; &quot; }
+     let parse_four_letter_word = fn (s) {
+         case string.length(s) {
+             True -&gt; 
+                 parser.succeed(s)
 
+             False -&gt; 
+                 parser.fail(&quot;Expected a four letter word.&quot;)
+         }
+     }
+     let parser = parser.take_while(is_not_space)
+         |&gt; parser.then(parse_four_letter_word)
+
+     parser.run(&quot;Hello world&quot;, parser)
+         |&gt; should.equal(Error(Custom(&quot;Expected a four letter word.&quot;)))
  }
 </code></pre>
 </details>
@@ -583,16 +662,36 @@
     </div>
     <pre><code class="hljs gleam">pub fn fail_with(error: Error) -&gt; Parser(a)</code></pre>
     <div class="rendered-markdown"><div style="text-align: right;">
-     <a href="https://github.com/xxx/yyy/issues">
+     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
          <small>Spot a typo? Open an issue!</small>
      </a>
  </div>
+<p>Create a <a href="#Parser"><code>Parser</code></a> that always fails regardless of the input. Unlike
+<a href="#fail"><code>fail</code></a>, you can use any of the constructors for the <a href="#Error"><code>Error</code></a>
+type here.</p>
 <details>
      <summary>Example:</summary>
-<pre><code> import gleam/should
+<pre><code> import gleam/result.{Ok, Error}
+ import gleam/should
+ import gleam/string
+ import string/parser.{Expected}
 
  pub fn example () {
+     let is_not_space = fn (c) { c != &quot; &quot; }
+     let parse_four_letter_word = fn (s) {
+         case string.length(s) {
+             True -&gt; 
+                 parser.succeed(s)
 
+             False -&gt;
+                 parser.fail_with(Expected(&quot;A four letter word&quot;, got: s))
+         }
+     }
+     let parser = parser.take_while(is_not_space)
+         |&gt; parser.then(parse_four_letter_word)
+
+     parser.run(&quot;Hello world&quot;, parser)
+         |&gt; should.equal(Error(Expected(&quot;A four letter word&quot;, got: s))
  }
 </code></pre>
 </details>
@@ -619,16 +718,49 @@
   parser: Parser(a),
 ) -&gt; Parser(b)</code></pre>
     <div class="rendered-markdown"><div style="text-align: right;">
-     <a href="https://github.com/xxx/yyy/issues">
+     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
          <small>Spot a typo? Open an issue!</small>
      </a>
  </div>
+<p>This is one of two combinators used in conjuction with <a href="#succeed"><code>succeed</code></a>
+(the other being <a href="#drop"><code>drop</code></a>) that come together to form a nice pipeline
+API for parsing.</p>
+<p>The first argument is a <em>function</em> wrapped up in a <a href="#Parser"><code>Parser</code></a>, usually
+created using <a href="#succeed"><code>succeed</code></a>. The second argument is a parser for the
+value we want to keep. This parser combines the two by applying that value 
+to the function.</p>
+<p>When you use one of the <code>succeed{N}</code> functions such as <a href="#succeed"><code>succeed2</code></a>
+you’ll get back a [<code>Parser</code>] for a function. You might then work out that you
+can use <code>keep</code> again, and voila we have a neat declarative pipline parser
+that describes what results we want to keep and how. </p>
+<p>The explanation is a bit wordy and compicated, but its useage is intuitive.
+If you’ve been looking at the rest of the docs for this package, you’ll already
+have seen <a href="#keep"><code>keep</code></a> used all over the place.</p>
 <details>
      <summary>Example:</summary>
-<pre><code> import gleam/should
+<pre><code> import gleam/result.{Ok, Error}
+ import gleam/should
+ import gleam/string.{String}
+ import gleam/int
+ import string/parser.{UnexpectedInput}
 
  pub fn example () {
+     let digit_parser = parser.any() |&gt; parser.then(fn (c) {
+         case int.parse(c) {
+             Ok(num) -&gt; parser.succeed(num)
+             Error(_) -&gt; parser.fail_with(UnexpectedInput)
+         }
+     })
+     
+     let parser = parser.succeed2(fn (x, y) { x + y })
+         |&gt; parser.keep(digit_parser)
+         |&gt; parser.drop(parser.spaces())
+         |&gt; parser.drop(parser.string(&quot;+&quot;))
+         |&gt; parser.drop(parser.spaces())
+         |&gt; parser.keep(digit_parser)
 
+     parser.run(&quot;1 + 3&quot;, parser)
+         |&gt; should.equal(Ok(4))
  }
 </code></pre>
 </details>
@@ -652,16 +784,26 @@
     </div>
     <pre><code class="hljs gleam">pub fn map(parser: Parser(a), f: fn(a) -&gt; b) -&gt; Parser(b)</code></pre>
     <div class="rendered-markdown"><div style="text-align: right;">
-     <a href="https://github.com/xxx/yyy/issues">
+     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
          <small>Spot a typo? Open an issue!</small>
      </a>
  </div>
+<p>A combinator that transforms a parsed value by applying a function to it and
+returning a new <a href="#Parser"><code>Parser</code></a> with that transformed value. This follows
+the same pattern as <a href="https://hexdocs.pm/gleam_stdlib/gleam/option/#map"><code>gleam/option.map</code></a>
+or <a href="https://hexdocs.pm/gleam_stdlib/gleam/result/#map"><code>gleam/result.map</code></a>.</p>
 <details>
-     <summary>Example:</summary>
-<pre><code> import gleam/should
+     import gleam/result.{Ok, Error}
+     import gleam/should
+     import string/parser
+<pre><code> pub fn example () {
+     let parser = parser.any() |&gt; parser.map(string.repeat(5))
 
- pub fn example () {
+     parser.run(&quot;Hello world&quot;, parser)
+         |&gt; should.equal(Ok(&quot;HHHHH&quot;))
 
+     parser.run(&quot;&quot;, parser)
+         |&gt; should.equal(Error(parser.EOF))
  }
 </code></pre>
 </details>
@@ -689,16 +831,31 @@
   f: fn(a, b) -&gt; c,
 ) -&gt; Parser(c)</code></pre>
     <div class="rendered-markdown"><div style="text-align: right;">
-     <a href="https://github.com/xxx/yyy/issues">
+     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
          <small>Spot a typo? Open an issue!</small>
      </a>
  </div>
+<p>A combinator that combines two parsed values by applying a function to them
+both and returning a new <a href="#Parser"><code>Parser</code></a> containing the combined value.</p>
+<p>Fun fact, <a href="#keep"><code>keep</code></a> is defined using this combinator. </p>
 <details>
      <summary>Example:</summary>
-<pre><code> import gleam/should
+<pre><code> import gleam/result.{Ok, Error}
+ import gleam/should
+ import gleam/string
+ import string/parser
 
  pub fn example () {
+     let parser = parser.map2(
+         parser.string(&quot;Hello&quot;),
+         parser.string(&quot;world&quot;),
+         fn (hello, world) {
+             string.concat([ hello, &quot; &quot;, world ])
+         }
+     )
 
+     parser.run(&quot;Helloworld&quot;, parser)
+         |&gt; should.equal(Ok(&quot;Hello world&quot;))
  }
 </code></pre>
 </details>
@@ -722,16 +879,30 @@
     </div>
     <pre><code class="hljs gleam">pub fn one_of(parsers: List(Parser(a))) -&gt; Parser(a)</code></pre>
     <div class="rendered-markdown"><div style="text-align: right;">
-     <a href="https://github.com/xxx/yyy/issues">
+     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
          <small>Spot a typo? Open an issue!</small>
      </a>
  </div>
+<p>A combinator that tries a list of parsers in sequence until one succeeds. If
+you pass in an empty list this parser will fail with the <code>BadParser</code> constructor
+of the <a href="#Error"><code>Error</code></a> type.</p>
 <details>
-     <summary>Example:</summary>
-<pre><code> import gleam/should
+     import gleam/result.{Ok, Error}
+     import gleam/should
+     import gleam/string
+     import string/parser
+<pre><code> pub fn example () {
+     let beam_lang = parser.oneOf(
+         parser.string(&quot;Erlang&quot;),
+         parser.string(&quot;Elixir&quot;),
+         parser.string(&quot;Gleam&quot;)
+     )
+     let parser = parser.succeed2(string.append)
+         |&gt; parser.keep(parser.string(&quot;Hello &quot;))
+         |&gt; parser.keep(beam_lang)
 
- pub fn example () {
-
+     parser.run(&quot;Hello Gleam&quot;, parser)
+         |&gt; should.equal(Ok(&quot;Hello Gleam&quot;))
  }
 </code></pre>
 </details>
@@ -755,16 +926,26 @@
     </div>
     <pre><code class="hljs gleam">pub fn run(input: String, parser: Parser(a)) -&gt; Result(a, Error)</code></pre>
     <div class="rendered-markdown"><div style="text-align: right;">
-     <a href="https://github.com/xxx/yyy/issues">
+     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
          <small>Spot a typo? Open an issue!</small>
      </a>
  </div>
+<p>Run a parser and get back its result. If the supplied parser doesn’t entirely
+consume its input, the remaining string is dropped, never to be seen again.</p>
 <details>
      <summary>Example:</summary>
-<pre><code> import gleam/should
+<pre><code> import gleam/result.{Ok, Error}
+ import gleam/should
+ import string/parser
 
  pub fn example () {
+     let parser = parser.any() |&gt; parser.map(string.repeat(5))
 
+     parser.run(&quot;Hello world&quot;, parser)
+         |&gt; should.equal(Ok(&quot;HHHHH&quot;))
+
+     parser.run(&quot;&quot;, parser)
+         |&gt; should.equal(Error(parser.EOF))
  }
 </code></pre>
 </details>
@@ -788,16 +969,38 @@
     </div>
     <pre><code class="hljs gleam">pub fn spaces() -&gt; Parser(Nil)</code></pre>
     <div class="rendered-markdown"><div style="text-align: right;">
-     <a href="https://github.com/xxx/yyy/issues">
+     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
          <small>Spot a typo? Open an issue!</small>
      </a>
  </div>
+<p>Parse <strong>zero or more</strong> spaces in sequence. </p>
 <details>
      <summary>Example:</summary>
-<pre><code> import gleam/should
+<pre><code> import gleam/result.{Ok, Error}
+ import gleam/should
+ import string/parser.{Expected}
 
  pub fn example () {
+     let parser = parser.succeed(&quot;No spaces required&quot;)
+         |&gt; parser.drop(parser.string(&quot;Hello&quot;))
+         |&gt; parser.drop(parser.spaces())
+         |&gt; parser.drop(parser.string(&quot;world&quot;))
 
+     parser.run(&quot;Helloworld&quot;, parser)
+         |&gt; should.equal(Ok(&quot;No spaces required&quot;))
+
+     let is_space = fn (c) { c == &quot; &quot; }
+     let parser = parser.succeed(&quot;At least one space required&quot;)
+         |&gt; parser.drop(parser.string(&quot;Hello&quot;))
+         |&gt; parser.drop(parser.take_if(is_space))
+         |&gt; parser.drop(parser.spaces())
+         |&gt; parser.drop(parser.string(&quot;world&quot;))
+
+     parser.run(&quot;Helloworld&quot;, parser)
+         |&gt; should.equal(Error(Expected(&quot; &quot;, got: &quot;world&quot;)))
+
+     parser.run(&quot;Hello world&quot;, parser)
+         |&gt; should.equal(Ok(&quot;At least one space required&quot;))
  }
 </code></pre>
 </details>
@@ -821,16 +1024,36 @@
     </div>
     <pre><code class="hljs gleam">pub fn string(value: String) -&gt; Parser(String)</code></pre>
     <div class="rendered-markdown"><div style="text-align: right;">
-     <a href="https://github.com/xxx/yyy/issues">
+     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
          <small>Spot a typo? Open an issue!</small>
      </a>
  </div>
+<p>Parse an exact string from the input. If you were writing a programming
+language parser, you might use this to parse keywords or symbols.</p>
 <details>
      <summary>Example:</summary>
-<pre><code> import gleam/should
+<pre><code> import gleam/result.{Ok, Error}
+ import gleam/should
+ import gleam/string.{String}
+ import string/parser.{Expected}
+
+ type VariableDeclaration {
+     VariableDeclaration(var: String)
+ }
 
  pub fn example () {
+     let is_not_space = fn (c) { c != &quot; &quot; }
+     let parser = parser.succeed(VariableDeclaration)
+         |&gt; parser.drop(parser.string(&quot;var&quot;))
+         |&gt; parser.drop(parser.spaces())
+         |&gt; parser.keep(parser.take_while(is_not_space))
+         |&gt; parser.drop(parser.string(&quot;;&quot;))
 
+     parser.run(&quot;var x;&quot;, parser)
+         |&gt; should.equal(Ok(VariableDeclaration(var: &quot;x&quot;)))
+
+     parser.run(&quot;let x;&quot;, parser)
+         |&gt; should.equal(Error(Expected(&quot;var&quot;, got: &quot;let x;&quot;)))
  }
 </code></pre>
 </details>
@@ -858,12 +1081,29 @@
          <small>Spot a typo? Open an issue!</small>
      </a>
  </div>
+<p>Ignore the input string and succeed with the given value. Commonly used in
+combination with <a href="#keep"><code>keep</code></a> and <a href="#drop"><code>drop</code></a> by passing in a <em>function</em>
+to succeed and then using <a href="#keep"><code>keep</code></a> to call that function with the
+result of another parser. </p>
+<p>If that sounds a bit baffling, see the example below. It is a rewrite of
+the example used for <a href="#Parser"><code>Parser</code></a> but one that is able to parse
+<em>and ignore</em> leading whitespace from the input.</p>
 <details>
      <summary>Example:</summary>
-<pre><code> import gleam/should
+<pre><code> import gleam/result.{Ok, Error}
+ import gleam/should
+ import string/parser
 
  pub fn example () {
+     let parser = parser.succeed(string.repeat(5))
+         |&gt; parser.drop(parser.spaces())
+         |&gt; parser.keep(parser.any())
 
+     parser.run(&quot;Hello world&quot;, parser)
+         |&gt; should.equal(Ok(&quot;HHHHH&quot;))
+
+     parser.run(&quot;   Hello world&quot;, parser)
+         |&gt; should.equal(Ok(&quot;HHHHH&quot;))
  }
 </code></pre>
 </details>
@@ -886,7 +1126,43 @@
       
     </div>
     <pre><code class="hljs gleam">pub fn succeed2(f: fn(a, b) -&gt; c) -&gt; Parser(fn(a) -&gt; fn(b) -&gt; c)</code></pre>
-    <div class="rendered-markdown"></div>
+    <div class="rendered-markdown"><div style="text-align: right;">
+     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
+         <small>Spot a typo? Open an issue!</small>
+     </a>
+ </div>
+<p>Like <a href="#succeed"><code>succeed</code></a> but for a function that takes four arguments.
+Functions in Gleam aren’t automatically <em>curried</em> like they are in languages
+like Elm or Haskell, and that is problematic for our <a href="#succeed"><code>succeed</code></a>
+parser to work correctly. To address this, <a href="#succeed2"><code>succeed2</code></a> takes a
+function expecting <strong>two</strong> arguments, and calls <code>function.curry2</code> to turn
+it into a sequence functions that are expecting one argument.</p>
+<p>You could implement this yourself by doing <code>function.curry2(f) |&gt; parser.succeed</code>
+where <code>f</code> is the two-argument function you want to use.</p>
+<details>
+     <summary>Example:</summary>
+<pre><code> import gleam/result.{Ok, Error}
+ import gleam/should
+ import string/parser
+
+ pub fn example () {
+     let is_not_space = fn (c) { c != &quot; &quot; }
+     let parser = parser.succeed2(string.append)
+         |&gt; parser.keep(parser.take_while(is_not_space))
+         |&gt; parser.drop(parser.spaces())
+         |&gt; parser.keep(parser.take_while(is_not_space))
+
+     parser.run(&quot;Hello world&quot;, parser)
+         |&gt; should.equal(Ok(&quot;Helloworld&quot;))
+ }
+</code></pre>
+</details>
+<div style="text-align: right;">
+     <a href="#">
+         <small>Back to top ↑</small>
+     </a>
+ </div>
+</div>
   </div>
   
   <div class="member">
@@ -902,7 +1178,25 @@
     <pre><code class="hljs gleam">pub fn succeed3(
   f: fn(a, b, c) -&gt; d,
 ) -&gt; Parser(fn(a) -&gt; fn(b) -&gt; fn(c) -&gt; d)</code></pre>
-    <div class="rendered-markdown"></div>
+    <div class="rendered-markdown"><div style="text-align: right;">
+     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
+         <small>Spot a typo? Open an issue!</small>
+     </a>
+ </div>
+<p>Like <a href="#succeed"><code>succeed</code></a> but for a function that takes four arguments.
+Functions in Gleam aren’t automatically <em>curried</em> like they are in languages
+like Elm or Haskell, and that is problematic for our <a href="#succeed"><code>succeed</code></a>
+parser to work correctly. To address this, <a href="#succeed3"><code>succeed3</code></a> takes a
+function expecting <strong>three</strong> arguments, and calls <code>function.curry4</code> to turn
+it into a sequence functions that are expecting one argument.</p>
+<p>For an example of how this is used, take a look at the examples given for
+<a href="#succeed"><code>succeed</code></a> and <a href="#succeed2"><code>succeed2</code></a>.</p>
+<div style="text-align: right;">
+     <a href="#">
+         <small>Back to top ↑</small>
+     </a>
+ </div>
+</div>
   </div>
   
   <div class="member">
@@ -918,7 +1212,25 @@
     <pre><code class="hljs gleam">pub fn succeed4(
   f: fn(a, b, c, d) -&gt; e,
 ) -&gt; Parser(fn(a) -&gt; fn(b) -&gt; fn(c) -&gt; fn(d) -&gt; e)</code></pre>
-    <div class="rendered-markdown"></div>
+    <div class="rendered-markdown"><div style="text-align: right;">
+     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
+         <small>Spot a typo? Open an issue!</small>
+     </a>
+ </div>
+<p>Like <a href="#succeed"><code>succeed</code></a> but for a function that takes four arguments.
+Functions in Gleam aren’t automatically <em>curried</em> like they are in languages
+like Elm or Haskell, and that is problematic for our <a href="#succeed"><code>succeed</code></a>
+parser to work correctly. To address this, <a href="#succeed4"><code>succeed4</code></a> takes a
+function expecting <strong>four</strong> arguments, and calls <code>function.curry4</code> to turn
+it into a sequence functions that are expecting one argument.</p>
+<p>For an example of how this is used, take a look at the examples given for
+<a href="#succeed"><code>succeed</code></a> and <a href="#succeed2"><code>succeed2</code></a>.</p>
+<div style="text-align: right;">
+     <a href="#">
+         <small>Back to top ↑</small>
+     </a>
+ </div>
+</div>
   </div>
   
   <div class="member">
@@ -933,16 +1245,39 @@
     </div>
     <pre><code class="hljs gleam">pub fn take_if(predicate: fn(String) -&gt; Bool) -&gt; Parser(String)</code></pre>
     <div class="rendered-markdown"><div style="text-align: right;">
-     <a href="https://github.com/xxx/yyy/issues">
+     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
          <small>Spot a typo? Open an issue!</small>
      </a>
  </div>
+<p>Pop a grapheme off the input and test it against some predicate function. If
+it passes then succeed with that grapheme, otherwise <strong>fail</strong> with the
+<code>UnexpectedInput</code> constructor of the <a href="#Error"><code>Error</code></a> type. This is in
+contrast to <a href="#take_while"><code>take_while</code></a> which will always succeed even if no
+graphemes pass the predicate.</p>
 <details>
      <summary>Example:</summary>
-<pre><code> import gleam/should
+<pre><code> import gleam/result.{Ok, Error}
+ import gleam/should
+ import string/parser.{UnexpectedInput, EOF}
 
  pub fn example () {
+     let is_digit = fn (c) {
+         case c {
+             &quot;0&quot; | &quot;1&quot; | &quot;2&quot; | &quot;3&quot; | &quot;4&quot; -&gt; True
+             &quot;5&quot; | &quot;6&quot; | &quot;7&quot; | &quot;8&quot; | &quot;9&quot; -&gt; True
+             _ -&gt; False
+         }
+     }
+     let parser = parser.take_while(is_digit)
 
+     parser.run(&quot;1337&quot;, parser)
+         |&gt; should.equal(Ok(&quot;1&quot;))
+
+     parser.run(&quot;Hello world&quot;, parser)
+         |&gt; should.equal(Error(UnexpectedInput))
+
+     parser.run(&quot;&quot;, parser)
+         |&gt; should.equal(Error(EOF))
  }
 </code></pre>
 </details>
@@ -968,16 +1303,41 @@
   predicate: fn(String) -&gt; Bool,
 ) -&gt; Parser(String)</code></pre>
     <div class="rendered-markdown"><div style="text-align: right;">
-     <a href="https://github.com/xxx/yyy/issues">
+     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
          <small>Spot a typo? Open an issue!</small>
      </a>
  </div>
+<p>Pop a grapheme off the input string and test it against some predicate function.
+If it passes, pop the next grapheme off and so on until the predicate test
+fails. Join all the passing graphemes back together into a single string and
+succeed with that result.</p>
+<p><strong>This parser always succeeds</strong>. If you use <code>[</code>take_while`](#take_while) to
+parse an empty string, or if no graphemes pass the predicate, this will succeed
+with an empty string of its own. </p>
 <details>
      <summary>Example:</summary>
-<pre><code> import gleam/should
+<pre><code> import gleam/result.{Ok, Error}
+ import gleam/should
+ import string/parser
 
  pub fn example () {
+     let is_digit = fn (c) {
+         case c {
+             &quot;0&quot; | &quot;1&quot; | &quot;2&quot; | &quot;3&quot; | &quot;4&quot; -&gt; True
+             &quot;5&quot; | &quot;6&quot; | &quot;7&quot; | &quot;8&quot; | &quot;9&quot; -&gt; True
+             _ -&gt; False
+         }
+     }
+     let parser = parser.take_while(is_digit)
 
+     parser.run(&quot;1337&quot;, parser)
+         |&gt; should.equal(Ok(&quot;1337&quot;))
+
+     parser.run(&quot;Hello world&quot;, parser)
+         |&gt; should.equal(Ok(&quot;&quot;))
+
+     parser.run(&quot;&quot;, parser)
+         |&gt; should.equal(Ok(&quot;&quot;))
  }
 </code></pre>
 </details>
@@ -1004,16 +1364,46 @@
   f: fn(a) -&gt; Parser(b),
 ) -&gt; Parser(b)</code></pre>
     <div class="rendered-markdown"><div style="text-align: right;">
-     <a href="https://github.com/xxx/yyy/issues">
+     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
          <small>Spot a typo? Open an issue!</small>
      </a>
  </div>
+<p>A combinator that can take the result of one parser, and use it to create
+a new parser. This follows the same pattern as 
+<a href="https://hexdocs.pm/gleam_stdlib/gleam/option/#then"><code>gleam/option.then</code></a> or
+<a href="https://hexdocs.pm/gleam_stdlib/gleam/option/#then"><code>gleam/result.then</code></a>.</p>
+<p>This is useful if you want to transform or validate a parsed value and fail
+if something is wrong.</p>
 <details>
-     <summary>Example:</summary>
-<pre><code> import gleam/should
+     import gleam/int
+     import gleam/result.{Ok, Error}
+     import gleam/should
+     import string/parser.{UnexpectedInput}
+<pre><code> pub fn example () {
+     let is_digit = fn (c) {
+         case c {
+             &quot;0&quot; | &quot;1&quot; | &quot;2&quot; | &quot;3&quot; | &quot;4&quot; -&gt; True
+             &quot;5&quot; | &quot;6&quot; | &quot;7&quot; | &quot;8&quot; | &quot;9&quot; -&gt; True
+             _ -&gt; False
+         }
+     }
+     let parse_digits = fn (digits) {
+         case int.parse(digits) {
+             Ok(num) -&gt;
+                 parser.succeed(num)
 
- pub fn example () {
+             Error(_) -&gt;
+                 parser.fail_with(UnexpectedInput)
+     }
 
+     let parser = parser.take_while(is_digit)
+         |&gt; parser.then(parse_digits)
+
+     parser.run(&quot;1337&quot;, parser)
+         |&gt; should.equal(Ok(1337))
+
+     parser.run(&quot;Hello world&quot;, parser)
+         |&gt; should.equal(Error(UnexpectedInput))
  }
 </code></pre>
 </details>
@@ -1078,8 +1468,8 @@
 
     <script src="https://unpkg.com/@highlightjs/cdn-assets@10.5.0/languages/elixir.min.js"></script>
 
-    <script src="..&#x2f;../highlightjs-gleam.js?v=0.14.0"></script>
+    <script src="..&#x2f;../highlightjs-gleam.js?v=0.14.4"></script>
 
-    <script src="..&#x2f;../gleam.js?v=0.14.0"></script>
+    <script src="..&#x2f;../gleam.js?v=0.14.4"></script>
   </body>
 </html>

@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>simple_parser</title>
-    <link rel="stylesheet" href="./index.css?v=0.14.0" type="text/css" />
+    <title>string_parser</title>
+    <link rel="stylesheet" href="./index.css?v=0.14.4" type="text/css" />
     <!-- The docs_config.js file is provided by HexDocs and shared
          between multiple versions of the same package. -->
     <script src="./docs_config.js"></script>
@@ -138,15 +138,15 @@
       </button>
 
       <h2>
-        <a href="./">simple_parser</a>
+        <a href="./">string_parser</a>
         <span id="project-version">
-          <span> - v{dev} </span>
+          <span> - v1.0.0 </span>
         </span>
         <script>
           "use strict";
 
           if ("undefined" !== typeof versionNodes) {
-            const currentVersion = "v{dev}";
+            const currentVersion = "v1.0.0";
             if (! versionNodes.find(element => element.version === currentVersion)) {
               versionNodes.unshift({ version: currentVersion, url: "#" });
             }
@@ -197,7 +197,7 @@
         <h2>Modules</h2>
         <ul>
         
-          <li><a href="./simple&#x2f;parser&#x2f;">simple&#x2f;parser</a></li>
+          <li><a href="./string&#x2f;parser&#x2f;">string&#x2f;parser</a></li>
         
         </ul>
 
@@ -206,8 +206,8 @@
 
       <main class="content">
         
-<h1>simple_parser</h1>
-<p>A Gleam project</p>
+<h1>gleam-string-parser</h1>
+<p>A simple parser combinator library built in Gleam.</p>
 <h2>Quick start</h2>
 <pre><code class="language-sh"># Run the eunit tests
 rebar3 eunit
@@ -219,7 +219,7 @@ rebar3 shell
 <p>If <a href="https://rebar3.org/docs/configuration/dependencies/#declaring-dependencies">available in Hex</a>
 this package can be installed by adding <code>simple_parser</code> to your <code>rebar.config</code> dependencies:</p>
 <pre><code class="language-erlang">{deps, [
-    simple_parser
+    string_parser
 ]}.
 </code></pre>
 
@@ -274,8 +274,8 @@ this package can be installed by adding <code>simple_parser</code> to your <code
 
     <script src="https://unpkg.com/@highlightjs/cdn-assets@10.5.0/languages/elixir.min.js"></script>
 
-    <script src="./highlightjs-gleam.js?v=0.14.0"></script>
+    <script src="./highlightjs-gleam.js?v=0.14.4"></script>
 
-    <script src="./gleam.js?v=0.14.0"></script>
+    <script src="./gleam.js?v=0.14.4"></script>
   </body>
 </html>
