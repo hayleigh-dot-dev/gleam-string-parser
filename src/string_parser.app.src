@@ -1,6 +1,6 @@
 {application, string_parser,
  [{description, "A simple parser combinator library written in Gleam."},
-  {vsn, 1.0.0},
+  {vsn, "1.0.0"},
   {registered, []},
   {applications,
    [kernel,
