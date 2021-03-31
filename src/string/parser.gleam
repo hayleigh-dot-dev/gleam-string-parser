@@ -32,7 +32,7 @@ import gleam/float.{Float}
 import gleam/function
 import gleam/int.{Int}
 import gleam/list.{Continue, Stop}
-import gleam/option.{Option}
+import gleam/option.{Option, Some, None}
 import gleam/pair
 import gleam/result.{Result, Nil}
 import gleam/string.{String}
@@ -674,6 +674,42 @@ pub fn float () -> Parser(Float) {
         |> keep(take_if_and_while(is_digit))
         |> map(float.parse)
         |> then(from_result)
+}
+
+/// <div style="text-align: right;">
+///     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
+///         <small>Spot a typo? Open an issue!</small>
+///     </a>
+/// </div>
+///
+/// Take a [`Parser`](#Parser) and turn it into an optional parser. If it fails,
+/// instead of the parser reporting an error, we carry on and succeed with `None`.
+///
+/// <details>
+///     <summary>Example:</summary>
+///
+///     import gleam/result.{Ok, Error}
+///     import gleam/should
+///     import string/parser.{Expected}
+///
+///     pub fn example () {
+///
+///     }
+/// </details>
+///
+/// <div style="text-align: right;">
+///     <a href="#">
+///         <small>Back to top ↑</small>
+///     </a>
+/// </div>
+///
+pub fn optional (parser: Parser(a)) -> Parser(Option(a)) {
+    Parser(fn (input) {
+        runwrap(parser, input)
+            |> result.map(pair.map_first(_, Some))
+            |> result.unwrap(tuple(None, input))
+            |> Ok
+    })
 }
 
 
