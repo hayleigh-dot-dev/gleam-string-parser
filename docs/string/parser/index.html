@@ -626,7 +626,7 @@ instead.</p>
  pub fn example () {
      let is_not_space = fn (c) { c != &quot; &quot; }
      let parse_four_letter_word = fn (s) {
-         case string.length(s) {
+         case string.length(s) == 4 {
              True -&gt; 
                  parser.succeed(s)
 
@@ -679,7 +679,7 @@ type here.</p>
  pub fn example () {
      let is_not_space = fn (c) { c != &quot; &quot; }
      let parse_four_letter_word = fn (s) {
-         case string.length(s) {
+         case string.length(s) == 4 {
              True -&gt; 
                  parser.succeed(s)
 
