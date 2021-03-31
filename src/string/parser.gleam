@@ -720,6 +720,58 @@ pub fn take_if (predicate: fn (String) -> Bool) -> Parser(String) {
     })
 }
 
+/// <div style="text-align: right;">
+///     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
+///         <small>Spot a typo? Open an issue!</small>
+///     </a>
+/// </div>
+///
+/// It's incredibly common to combine [`take_if`](#take_if) and [`take_while`](#take_while)
+/// to create a parser that consumes _one or more_ graphemes. This does just that!
+///
+/// <details>
+///     <summary>Example:</summary>
+///
+///     import gleam/result.{Ok, Error}
+///     import gleam/should
+///     import string/parser.{UnexpectedInput, EOF}
+///
+///     pub fn example () {
+///         let is_digit = fn (c) {
+///             case c {
+///                 "0" | "1" | "2" | "3" | "4" -> True
+///                 "5" | "6" | "7" | "8" | "9" -> True
+///                 _ -> False
+///             }
+///         }
+///         let parser = parser.take_if_and_while(is_digit)
+///
+///         parser.run("1337", parser)
+///             |> should.equal(Ok("1337"))
+///
+///         parser.run("1", parser)
+///             |> should.equal(Ok("1"))
+///
+///         parser.run("Hello world", parser)
+///             |> should.equal(Error(UnexpectedInput))
+///
+///         parser.run("", parser)
+///             |> should.equal(Error(EOF))
+///     }
+/// </details>
+///
+/// <div style="text-align: right;">
+///     <a href="#">
+///         <small>Back to top ↑</small>
+///     </a>
+/// </div>
+///
+pub fn take_if_and_while(predicate: fn (String) -> Bool) -> Parser(String) {
+    succeed(string.append)
+        |> keep(take_if(predicate))
+        |> keep(take_while(predicate))
+}
+
 
 // COMBINATORS -----------------------------------------------------------------
 
