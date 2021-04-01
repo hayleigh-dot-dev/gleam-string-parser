@@ -1248,7 +1248,14 @@ pub fn many (parser: Parser(a), separator: Parser(b)) -> Parser(List(a)) {
                 runwrap(recurse(value), rest)
 
             Error(_) ->
-                Ok(tuple([], input))
+                case runwrap(parser, input) {
+                    Ok(tuple(value, rest)) ->
+                        Ok(tuple([ value ], rest))
+
+                    Error(_) ->
+                        Ok(tuple([], input))
+                }
+
         }
     })
 }
