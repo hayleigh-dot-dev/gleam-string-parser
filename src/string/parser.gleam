@@ -2,6 +2,16 @@
 //// * **Types**
 ////    * [`Parser`](#Parser)
 ////    * [`Error`](#Error)
+//// * **Primitive parsers**
+////    * [`any`](#any)
+////    * [`eof`](#eof)
+////    * [`string`](#string)
+////    * [`spaces`](#spaces)
+////    * [`whitespace`](#whitespace)
+//// * **Working with wrapper types**
+////    * [`optional`](#optional)
+////    * [`from_option`](#from_option)
+////    * [`from_result`](#from_result)
 //// * **Ignoring input**
 ////    * [`succeed`](#succeed)
 ////    * [`succeed2`](#succeed2)
@@ -9,11 +19,6 @@
 ////    * [`succeed4`](#succeed4)
 ////    * [`fail`](#fail)
 ////    * [`fail_with`](#fail_with)
-//// * **Primitive parsers**
-////    * [`any`](#any)
-////    * [`eof`](#eof)
-////    * [`string`](#string)
-////    * [`spaces`](#spaces)
 //// * **Chaining parsers**
 ////    * [`keep`](#keep)
 ////    * [`drop`](#drop)
@@ -21,10 +26,12 @@
 ////    * [`map`](#map)
 ////    * [`map2`](#map2)
 ////    * [`then`](#then)
+////    * [`lazy`](#lazy)
 ////    * [`one_of`](#one_of)
 //// * **Predicate parsers**
 ////    * [`take_if`](#take_if)
 ////    * [`take_while`](#take_while)
+////    * [`take_if_and_while`](#take_if_and_while)
 ////
 
 import gleam/bool.{Bool}
@@ -580,6 +587,47 @@ pub fn string (value: String) -> Parser(String) {
 ///
 pub fn spaces () -> Parser(Nil) {
     take_while(fn (c) { c == " "})
+        |> map(fn (_) { Nil })
+}
+
+/// <div style="text-align: right;">
+///     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
+///         <small>Spot a typo? Open an issue!</small>
+///     </a>
+/// </div>
+///
+/// Parse **zero or more** whitespace characters in sequence. Unlike [`spaces`](#spaces),
+/// this parser also consumes newlines and tabs as well.
+///
+/// <details>
+///     <summary>Example:</summary>
+///
+///     import gleam/result.{Nil, Ok, Error}
+///     import gleam/should
+///     import string/parser
+///
+///     pub fn example () {
+///         let parser = parser.succeed(Nil)
+///             |> parser.drop(parser.string("Hello"))
+///             |> parser.drop(parser.whitespace())
+///             |> parser.drop(parser.string("world"))
+///
+///         let input = "hello
+///                      world"
+///
+///         parser.run(input, parser)
+///             |> should.equal(Ok(Nil))
+///     }
+/// </details>
+///
+/// <div style="text-align: right;">
+///     <a href="#">
+///         <small>Back to top ↑</small>
+///     </a>
+/// </div>
+///
+pub fn whitespace () -> Parser(Nil) {
+    take_while(fn (c) { c == " " || c == "\t" || c == "\n" })
         |> map(fn (_) { Nil })
 }
 
