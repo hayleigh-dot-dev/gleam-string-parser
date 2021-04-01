@@ -8,8 +8,8 @@ import gleam/list
 // TESTS -----------------------------------------------------------------------
 
 
-pub fn test () {
-    let to_usd = fn (currency: Currency) {
+pub fn currency_test () {
+    let to_usd = fn (currency: Currency) -> Float {
         case currency.code {
             GBP -> currency.amount *. 1.38
             EUR -> currency.amount *. 1.17
@@ -17,7 +17,7 @@ pub fn test () {
         }
     }
     let add = fn (a, b) { a +. b }
-    let input = "$2.30, €3.24, £5.50, ¢4.13"
+    let input = "$2.30, €3.24, £5.50, $4.13"
 
     parser.run(input, wallet_parser())
         |> result.map(list.map(_, to_usd))
@@ -65,9 +65,8 @@ fn currency_code_parser () -> Parser(CurrencyCode) {
 }
 
 fn wallet_parser () -> Parser(Wallet) {
-    parser.many(currency_parser(),
-        // Currencies should be separated by commas, trailing whitespace is
-        // optional.
-        parser.string(",") |> parser.drop(parser.spaces())
-    )
+    let separator = parser.string(",") |> parser.drop(parser.spaces())
+
+    parser.many(currency_parser(), separator)
+        |> parser.drop(parser.eof())
 }
