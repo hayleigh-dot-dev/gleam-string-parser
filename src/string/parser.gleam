@@ -1083,6 +1083,36 @@ pub fn map (parser: Parser(a), f: fn (a) -> b) -> Parser(b) {
 ///     </a>
 /// </div>
 ///
+///
+///
+/// <details>
+///     import gleam/result.{Ok, Error}
+///     import gleam/should
+///     import string/parser
+///
+///     pub fn example () {
+///
+///     }
+/// </details>
+///
+/// <div style="text-align: right;">
+///     <a href="#">
+///         <small>Back to top ↑</small>
+///     </a>
+/// </div>
+///
+pub fn lazy (parser: fn () -> Parser(a)) -> Parser(a) {
+    Parser(fn (input) {
+        runwrap(parser(), input)
+    })
+}
+
+/// <div style="text-align: right;">
+///     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
+///         <small>Spot a typo? Open an issue!</small>
+///     </a>
+/// </div>
+///
 /// A combinator that combines two parsed values by applying a function to them
 /// both and returning a new [`Parser`](#Parser) containing the combined value.
 ///
