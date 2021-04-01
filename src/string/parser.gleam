@@ -1181,6 +1181,48 @@ pub fn one_of (parsers: List(Parser(a))) -> Parser(a) {
     })
 }
 
+/// <div style="text-align: right;">
+///     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
+///         <small>Spot a typo? Open an issue!</small>
+///     </a>
+/// </div>
+///
+///
+///
+/// <details>
+///     import gleam/result.{Ok, Error}
+///     import gleam/should
+///     import gleam/string
+///     import string/parser
+///
+///     pub fn example () {
+///
+///     }
+/// </details>
+///
+/// <div style="text-align: right;">
+///     <a href="#">
+///         <small>Back to top ↑</small>
+///     </a>
+/// </div>
+///
+pub fn many (parser: Parser(a), separator: Parser(b)) -> Parser(List(a)) {
+    let recurse = fn (value) {
+        many(parser, separator)
+            |> map(fn (vals) { [ value, ..vals ] })
+    }
+
+    Parser(fn (input) {
+        case runwrap(parser |> drop(separator), input) {
+            Ok(tuple(value, rest)) ->
+                runwrap(recurse(value), rest)
+
+            Error(_) ->
+                Ok(tuple([], input))
+        }
+    })
+}
+
 
 // CHAINING PARSERS ------------------------------------------------------------
 
