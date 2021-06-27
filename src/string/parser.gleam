@@ -34,20 +34,16 @@
 ////    * [`take_if_and_while`](#take_if_and_while)
 ////
 
-import gleam/bool.{Bool}
 import gleam/float.{Float}
 import gleam/function
 import gleam/int.{Int}
 import gleam/list.{Continue, Stop}
-import gleam/option.{Option, Some, None}
+import gleam/option.{None, Option, Some}
 import gleam/pair
-import gleam/result.{Result, Nil}
+import gleam/result
 import gleam/string.{String}
 
-
 // TYPES -----------------------------------------------------------------------
-
-
 /// <div style="text-align: right;">
 ///     <a href="https://github.com/pd-andy/gleam_simple_parser/issues">
 ///         <small>Spot a typo? Open an issue!</small>
@@ -68,7 +64,7 @@ import gleam/string.{String}
 /// </div>
 ///
 pub opaque type Parser(a) {
-    Parser(fn (String) -> Result(tuple(a, String), Error))
+  Parser(fn(String) -> Result(#(a, String), Error))
 }
 
 /// <div style="text-align: right;">
@@ -89,17 +85,14 @@ pub opaque type Parser(a) {
 /// </div>
 ///
 pub type Error {
-    BadParser(String)
-    Custom(String)
-    EOF
-    Expected(String, got: String)
-    UnexpectedInput(String)
+  BadParser(String)
+  Custom(String)
+  EOF
+  Expected(String, got: String)
+  UnexpectedInput(String)
 }
 
-
 // RUNNING PARSERS -------------------------------------------------------------
-
-
 /// <div style="text-align: right;">
 ///     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
 ///         <small>Spot a typo? Open an issue!</small>
@@ -133,22 +126,20 @@ pub type Error {
 ///     </a>
 /// </div>
 ///
-pub fn run (input: String, parser: Parser(a)) -> Result(a, Error) {
-    runwrap(parser, input) |> result.map(pair.first)
+pub fn run(input: String, parser: Parser(a)) -> Result(a, Error) {
+  runwrap(parser, input)
+  |> result.map(pair.first)
 }
 
 /// A portmanteau of "run" and "unwrap", not "run" and "wrap". Unwraps a parser
 /// function and then runs it against some input. Used internally to compensate
 /// for the lack of function-argument pattern matching. 
-fn runwrap (parser: Parser(a), input: String) -> Result(tuple(a, String), Error) {
-    let Parser(p) = parser
-    p(input)
+fn runwrap(parser: Parser(a), input: String) -> Result(#(a, String), Error) {
+  let Parser(p) = parser
+  p(input)
 }
 
-
 // BASIC PARSERS ---------------------------------------------------------------
-
-
 /// <div style="text-align: right;">
 ///     <a href="https://github.com/pd-andy/gleam_simple_parser/issues">
 ///         <small>Spot a typo? Open an issue!</small>
@@ -190,10 +181,8 @@ fn runwrap (parser: Parser(a), input: String) -> Result(tuple(a, String), Error)
 ///     </a>
 /// </div>
 ///
-pub fn succeed (value: a) -> Parser(a) {
-    Parser(fn (input) {
-        Ok(tuple(value, input))
-    })
+pub fn succeed(value: a) -> Parser(a) {
+  Parser(fn(input) { Ok(#(value, input)) })
 }
 
 /// <div style="text-align: right;">
@@ -237,8 +226,9 @@ pub fn succeed (value: a) -> Parser(a) {
 ///     </a>
 /// </div>
 ///
-pub fn succeed2 (f: fn (a, b) -> c) -> Parser(fn (a) -> fn (b) -> c) {
-    function.curry2(f) |> succeed
+pub fn succeed2(f: fn(a, b) -> c) -> Parser(fn(a) -> fn(b) -> c) {
+  function.curry2(f)
+  |> succeed
 }
 
 /// <div style="text-align: right;">
@@ -263,8 +253,9 @@ pub fn succeed2 (f: fn (a, b) -> c) -> Parser(fn (a) -> fn (b) -> c) {
 ///     </a>
 /// </div>
 ///
-pub fn succeed3 (f: fn (a, b, c) -> d) -> Parser(fn (a) -> fn (b) -> fn (c) -> d) {
-    function.curry3(f) |> succeed
+pub fn succeed3(f: fn(a, b, c) -> d) -> Parser(fn(a) -> fn(b) -> fn(c) -> d) {
+  function.curry3(f)
+  |> succeed
 }
 
 /// <div style="text-align: right;">
@@ -289,8 +280,11 @@ pub fn succeed3 (f: fn (a, b, c) -> d) -> Parser(fn (a) -> fn (b) -> fn (c) -> d
 ///     </a>
 /// </div>
 ///
-pub fn succeed4 (f: fn (a, b, c, d) -> e) -> Parser(fn (a) -> fn (b) -> fn (c) -> fn (d) -> e) {
-    function.curry4(f) |> succeed
+pub fn succeed4(
+  f: fn(a, b, c, d) -> e,
+) -> Parser(fn(a) -> fn(b) -> fn(c) -> fn(d) -> e) {
+  function.curry4(f)
+  |> succeed
 }
 
 /// <div style="text-align: right;">
@@ -337,10 +331,8 @@ pub fn succeed4 (f: fn (a, b, c, d) -> e) -> Parser(fn (a) -> fn (b) -> fn (c) -
 ///     </a>
 /// </div>
 ///
-pub fn fail (message: String) -> Parser(a) {
-    Parser(fn (_) {
-        Error(Custom(message))
-    })
+pub fn fail(message: String) -> Parser(a) {
+  Parser(fn(_) { Error(Custom(message)) })
 }
 
 /// <div style="text-align: right;">
@@ -386,16 +378,11 @@ pub fn fail (message: String) -> Parser(a) {
 ///     </a>
 /// </div>
 ///
-pub fn fail_with (error: Error) -> Parser(a) {
-    Parser(fn (_) {
-        Error(error)
-    })
+pub fn fail_with(error: Error) -> Parser(a) {
+  Parser(fn(_) { Error(error) })
 }
 
-
 // PRIMITIVE PARSERS -----------------------------------------------------------
-
-
 /// <div style="text-align: right;">
 ///     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
 ///         <small>Spot a typo? Open an issue!</small>
@@ -426,11 +413,11 @@ pub fn fail_with (error: Error) -> Parser(a) {
 ///     </a>
 /// </div>
 ///
-pub fn any () -> Parser(String) {
-    Parser(fn (input) {
-        string.pop_grapheme(input)
-            |> result.replace_error(EOF)
-    })
+pub fn any() -> Parser(String) {
+  Parser(fn(input) {
+    string.pop_grapheme(input)
+    |> result.replace_error(EOF)
+  })
 }
 
 /// <div style="text-align: right;">
@@ -470,16 +457,14 @@ pub fn any () -> Parser(String) {
 ///     </a>
 /// </div>
 ///
-pub fn eof () -> Parser(Nil) {
-    Parser(fn (input) {
-        case string.is_empty(input) {
-            True -> 
-                Ok(tuple(Nil, input))
+pub fn eof() -> Parser(Nil) {
+  Parser(fn(input) {
+    case string.is_empty(input) {
+      True -> Ok(#(Nil, input))
 
-            False -> 
-                Error(Expected("End of file", got: input))
-        }
-    })
+      False -> Error(Expected("End of file", got: input))
+    }
+  })
 }
 
 /// <div style="text-align: right;">
@@ -525,19 +510,17 @@ pub fn eof () -> Parser(Nil) {
 ///     </a>
 /// </div>
 ///
-pub fn string (value: String) -> Parser(String) {
-    let length = string.length(value)
-    let expect = string.concat([ "A string that starts with '", value, "'"])
+pub fn string(value: String) -> Parser(String) {
+  let length = string.length(value)
+  let expect = string.concat(["A string that starts with '", value, "'"])
 
-    Parser(fn (input) {
-        case string.starts_with(input, value) {
-            True ->
-                Ok(tuple(value, string.drop_left(input, length)))
-            
-            False ->
-                Error(Expected(expect, got: input))
-        }
-    })
+  Parser(fn(input) {
+    case string.starts_with(input, value) {
+      True -> Ok(#(value, string.drop_left(input, length)))
+
+      False -> Error(Expected(expect, got: input))
+    }
+  })
 }
 
 /// <div style="text-align: right;">
@@ -585,9 +568,9 @@ pub fn string (value: String) -> Parser(String) {
 ///     </a>
 /// </div>
 ///
-pub fn spaces () -> Parser(Nil) {
-    take_while(fn (c) { c == " "})
-        |> map(fn (_) { Nil })
+pub fn spaces() -> Parser(Nil) {
+  take_while(fn(c) { c == " " })
+  |> map(fn(_) { Nil })
 }
 
 /// <div style="text-align: right;">
@@ -626,9 +609,9 @@ pub fn spaces () -> Parser(Nil) {
 ///     </a>
 /// </div>
 ///
-pub fn whitespace () -> Parser(Nil) {
-    take_while(fn (c) { c == " " || c == "\t" || c == "\n" })
-        |> map(fn (_) { Nil })
+pub fn whitespace() -> Parser(Nil) {
+  take_while(fn(c) { c == " " || c == "\t" || c == "\n" })
+  |> map(fn(_) { Nil })
 }
 
 /// <div style="text-align: right;">
@@ -667,18 +650,18 @@ pub fn whitespace () -> Parser(Nil) {
 ///     </a>
 /// </div>
 ///
-pub fn int () -> Parser(Int) {
-    let is_digit = fn (c) {
-        case c {
-            "0" | "1" | "2" | "3" | "4" -> True
-            "5" | "6" | "7" | "8" | "9" -> True
-            _ -> False
-        }
+pub fn int() -> Parser(Int) {
+  let is_digit = fn(c) {
+    case c {
+      "0" | "1" | "2" | "3" | "4" -> True
+      "5" | "6" | "7" | "8" | "9" -> True
+      _ -> False
     }
+  }
 
-    take_if_and_while(is_digit)
-        |> map(int.parse)
-        |> then(from_result)
+  take_if_and_while(is_digit)
+  |> map(int.parse)
+  |> then(from_result)
 }
 
 /// <div style="text-align: right;">
@@ -707,21 +690,21 @@ pub fn int () -> Parser(Int) {
 ///     </a>
 /// </div>
 ///
-pub fn float () -> Parser(Float) {
-    let is_digit = fn (c) {
-        case c {
-            "0" | "1" | "2" | "3" | "4" -> True
-            "5" | "6" | "7" | "8" | "9" -> True
-            _ -> False
-        }
+pub fn float() -> Parser(Float) {
+  let is_digit = fn(c) {
+    case c {
+      "0" | "1" | "2" | "3" | "4" -> True
+      "5" | "6" | "7" | "8" | "9" -> True
+      _ -> False
     }
+  }
 
-    succeed2(fn (x, y) { string.concat([ x, ".", y ]) })
-        |> keep(take_if_and_while(is_digit))
-        |> drop(string("."))
-        |> keep(take_if_and_while(is_digit))
-        |> map(float.parse)
-        |> then(from_result)
+  succeed2(fn(x, y) { string.concat([x, ".", y]) })
+  |> keep(take_if_and_while(is_digit))
+  |> drop(string("."))
+  |> keep(take_if_and_while(is_digit))
+  |> map(float.parse)
+  |> then(from_result)
 }
 
 /// <div style="text-align: right;">
@@ -751,19 +734,16 @@ pub fn float () -> Parser(Float) {
 ///     </a>
 /// </div>
 ///
-pub fn optional (parser: Parser(a)) -> Parser(Option(a)) {
-    Parser(fn (input) {
-        runwrap(parser, input)
-            |> result.map(pair.map_first(_, Some))
-            |> result.unwrap(tuple(None, input))
-            |> Ok
-    })
+pub fn optional(parser: Parser(a)) -> Parser(Option(a)) {
+  Parser(fn(input) {
+    runwrap(parser, input)
+    |> result.map(pair.map_first(_, Some))
+    |> result.unwrap(#(None, input))
+    |> Ok
+  })
 }
-
 
 // UNWRAPPING OTHER TYPES ------------------------------------------------------
-
-
 /// <div style="text-align: right;">
 ///     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
 ///         <small>Spot a typo? Open an issue!</small>
@@ -790,10 +770,10 @@ pub fn optional (parser: Parser(a)) -> Parser(Option(a)) {
 ///     </a>
 /// </div>
 ///
-pub fn from_option (value: Option(a)) -> Parser(a) {
-    option.map(value, succeed) 
-        // TODO: This needs to be much nicer.
-        |> option.unwrap(fail_with(UnexpectedInput("")))
+pub fn from_option(value: Option(a)) -> Parser(a) {
+  option.map(value, succeed)
+  // TODO: This needs to be much nicer.
+  |> option.unwrap(fail_with(UnexpectedInput("")))
 }
 
 /// <div style="text-align: right;">
@@ -822,16 +802,13 @@ pub fn from_option (value: Option(a)) -> Parser(a) {
 ///     </a>
 /// </div>
 ///
-pub fn from_result (value: Result(a, x)) -> Parser(a) {
-    result.map(value, succeed) 
-        // TODO: This needs to be much nicer.
-        |> result.unwrap(fail_with(UnexpectedInput("")))
+pub fn from_result(value: Result(a, x)) -> Parser(a) {
+  result.map(value, succeed)
+  // TODO: This needs to be much nicer.
+  |> result.unwrap(fail_with(UnexpectedInput("")))
 }
-
 
 // PREDICATE PARSERS -----------------------------------------------------------
-
-
 /// <div style="text-align: right;">
 ///     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
 ///         <small>Spot a typo? Open an issue!</small>
@@ -881,27 +858,23 @@ pub fn from_result (value: Result(a, x)) -> Parser(a) {
 ///     </a>
 /// </div>
 ///
-pub fn take_while (predicate: fn (String) -> Bool) -> Parser(String) {
-    let recurse = fn (c) {
-        take_while(predicate) 
-            |> map (string.append(c, _))
-    }
+pub fn take_while(predicate: fn(String) -> Bool) -> Parser(String) {
+  let recurse = fn(c) {
+    take_while(predicate)
+    |> map(string.append(c, _))
+  }
 
-    Parser(fn (input) {
-        case string.pop_grapheme(input) {
-            Ok(tuple(char, rest)) ->
-                case predicate(char) {
-                    True ->
-                        runwrap(recurse(char), rest)
-                        
-                    False ->
-                        Ok(tuple("", input))
-                }
-            
-            Error(Nil) ->
-                Ok(tuple("", ""))
+  Parser(fn(input) {
+    case string.pop_grapheme(input) {
+      Ok(#(char, rest)) ->
+        case predicate(char) {
+          True -> runwrap(recurse(char), rest)
+          False -> Ok(#("", input))
         }
-    })
+
+      Error(Nil) -> Ok(#("", ""))
+    }
+  })
 }
 
 /// <div style="text-align: right;">
@@ -950,22 +923,18 @@ pub fn take_while (predicate: fn (String) -> Bool) -> Parser(String) {
 ///     </a>
 /// </div>
 ///
-pub fn take_if (predicate: fn (String) -> Bool) -> Parser(String) {
-    Parser(fn (input) {
-        case string.pop_grapheme(input) {
-            Ok(tuple(char, rest)) ->
-                case predicate(char) {
-                    True ->
-                        Ok(tuple(char, rest))
-                        
-                    False ->
-                        Error(UnexpectedInput(input))
-                }
-            
-            Error(Nil) ->
-                Error(EOF)
+pub fn take_if(predicate: fn(String) -> Bool) -> Parser(String) {
+  Parser(fn(input) {
+    case string.pop_grapheme(input) {
+      Ok(#(char, rest)) ->
+        case predicate(char) {
+          True -> Ok(#(char, rest))
+          False -> Error(UnexpectedInput(input))
         }
-    })
+
+      Error(Nil) -> Error(EOF)
+    }
+  })
 }
 
 /// <div style="text-align: right;">
@@ -1014,16 +983,13 @@ pub fn take_if (predicate: fn (String) -> Bool) -> Parser(String) {
 ///     </a>
 /// </div>
 ///
-pub fn take_if_and_while(predicate: fn (String) -> Bool) -> Parser(String) {
-    succeed2(string.append)
-        |> keep(take_if(predicate))
-        |> keep(take_while(predicate))
+pub fn take_if_and_while(predicate: fn(String) -> Bool) -> Parser(String) {
+  succeed2(string.append)
+  |> keep(take_if(predicate))
+  |> keep(take_while(predicate))
 }
 
-
 // COMBINATORS -----------------------------------------------------------------
-
-
 /// <div style="text-align: right;">
 ///     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
 ///         <small>Spot a typo? Open an issue!</small>
@@ -1078,14 +1044,15 @@ pub fn take_if_and_while(predicate: fn (String) -> Bool) -> Parser(String) {
 ///     </a>
 /// </div>
 ///
-pub fn then (parser: Parser(a), f: fn (a) -> Parser(b)) -> Parser(b) {
-    Parser(fn (input) {
-        runwrap(parser, input) |> result.then(fn (result) {
-            let tuple(value, next_input) = result
+pub fn then(parser: Parser(a), f: fn(a) -> Parser(b)) -> Parser(b) {
+  Parser(fn(input) {
+    runwrap(parser, input)
+    |> result.then(fn(result) {
+      let #(value, next_input) = result
 
-            runwrap(f(value), next_input)
-        })
+      runwrap(f(value), next_input)
     })
+  })
 }
 
 /// <div style="text-align: right;">
@@ -1121,8 +1088,14 @@ pub fn then (parser: Parser(a), f: fn (a) -> Parser(b)) -> Parser(b) {
 ///     </a>
 /// </div>
 ///
-pub fn map (parser: Parser(a), f: fn (a) -> b) -> Parser(b) {
-    then(parser, fn (a) { f(a) |> succeed })
+pub fn map(parser: Parser(a), f: fn(a) -> b) -> Parser(b) {
+  then(
+    parser,
+    fn(a) {
+      f(a)
+      |> succeed
+    },
+  )
 }
 
 /// <div style="text-align: right;">
@@ -1149,10 +1122,8 @@ pub fn map (parser: Parser(a), f: fn (a) -> b) -> Parser(b) {
 ///     </a>
 /// </div>
 ///
-pub fn lazy (parser: fn () -> Parser(a)) -> Parser(a) {
-    Parser(fn (input) {
-        runwrap(parser(), input)
-    })
+pub fn lazy(parser: fn() -> Parser(a)) -> Parser(a) {
+  Parser(fn(input) { runwrap(parser(), input) })
 }
 
 /// <div style="text-align: right;">
@@ -1194,12 +1165,12 @@ pub fn lazy (parser: fn () -> Parser(a)) -> Parser(a) {
 ///     </a>
 /// </div>
 ///
-pub fn map2 (parser_a: Parser(a), parser_b: Parser(b), f: fn (a, b) -> c) -> Parser(c) {
-    then(parser_a, fn (a) { 
-        map(parser_b, fn (b) { 
-            f(a, b) 
-        }) 
-    })
+pub fn map2(
+  parser_a: Parser(a),
+  parser_b: Parser(b),
+  f: fn(a, b) -> c,
+) -> Parser(c) {
+  then(parser_a, fn(a) { map(parser_b, fn(b) { f(a, b) }) })
 }
 
 /// <div style="text-align: right;">
@@ -1239,24 +1210,27 @@ pub fn map2 (parser_a: Parser(a), parser_b: Parser(b), f: fn (a, b) -> c) -> Par
 ///     </a>
 /// </div>
 ///
-pub fn one_of (parsers: List(Parser(a))) -> Parser(a) {
-    let initial_error = Error(BadParser(
-        "The list of parsers supplied to one_of is empty, I will always fail!"
+pub fn one_of(parsers: List(Parser(a))) -> Parser(a) {
+  let initial_error =
+    Error(BadParser(
+      "The list of parsers supplied to one_of is empty, I will always fail!",
     ))
 
-    Parser(fn (input) {
-        list.fold_until(parsers, initial_error, fn (parser, _) {
-            let result = runwrap(parser, input)
+  Parser(fn(input) {
+    list.fold_until(
+      parsers,
+      initial_error,
+      fn(parser, _) {
+        let result = runwrap(parser, input)
 
-            case result.is_ok(result) {
-                True ->
-                    Stop(result)
+        case result.is_ok(result) {
+          True -> Stop(result)
 
-                False ->
-                    Continue(result)
-            }
-        })
-    })
+          False -> Continue(result)
+        }
+      },
+    )
+  })
 }
 
 /// <div style="text-align: right;">
@@ -1284,34 +1258,30 @@ pub fn one_of (parsers: List(Parser(a))) -> Parser(a) {
 ///     </a>
 /// </div>
 ///
-pub fn many (parser: Parser(a), separator: Parser(b)) -> Parser(List(a)) {
-    let recurse = fn (value) {
-        many(parser, separator)
-            |> map(fn (vals) { [ value, ..vals ] })
-    }
+pub fn many(parser: Parser(a), separator: Parser(b)) -> Parser(List(a)) {
+  let recurse = fn(value) {
+    many(parser, separator)
+    |> map(fn(vals) { [value, ..vals] })
+  }
 
-    Parser(fn (input) {
-        case runwrap(parser |> drop(separator), input) {
-            Ok(tuple(value, rest)) ->
-                runwrap(recurse(value), rest)
+  Parser(fn(input) {
+    case runwrap(
+      parser
+      |> drop(separator),
+      input,
+    ) {
+      Ok(#(value, rest)) -> runwrap(recurse(value), rest)
 
-            Error(_) ->
-                case runwrap(parser, input) {
-                    Ok(tuple(value, rest)) ->
-                        Ok(tuple([ value ], rest))
-
-                    Error(_) ->
-                        Ok(tuple([], input))
-                }
-
+      Error(_) ->
+        case runwrap(parser, input) {
+          Ok(#(value, rest)) -> Ok(#([value], rest))
+          Error(_) -> Ok(#([], input))
         }
-    })
+    }
+  })
 }
 
-
 // CHAINING PARSERS ------------------------------------------------------------
-
-
 /// <div style="text-align: right;">
 ///     <a href="https://github.com/pd-andy/gleam-string-parser/issues">
 ///         <small>Spot a typo? Open an issue!</small>
@@ -1371,10 +1341,8 @@ pub fn many (parser: Parser(a), separator: Parser(b)) -> Parser(List(a)) {
 ///     </a>
 /// </div>
 ///
-pub fn keep (mapper: Parser(fn (a) -> b), parser: Parser(a)) -> Parser(b) {
-    map2(mapper, parser, fn (f, a) { 
-        f(a) 
-    })
+pub fn keep(mapper: Parser(fn(a) -> b), parser: Parser(a)) -> Parser(b) {
+  map2(mapper, parser, fn(f, a) { f(a) })
 }
 
 /// <div style="text-align: right;">
@@ -1434,8 +1402,6 @@ pub fn keep (mapper: Parser(fn (a) -> b), parser: Parser(a)) -> Parser(b) {
 ///     </a>
 /// </div>
 ///
-pub fn drop (keeper: Parser(a), ignorer: Parser(b)) -> Parser(a) {
-    map2(keeper, ignorer, fn (a, _) { 
-        a 
-    })
+pub fn drop(keeper: Parser(a), ignorer: Parser(b)) -> Parser(a) {
+  map2(keeper, ignorer, fn(a, _) { a })
 }
