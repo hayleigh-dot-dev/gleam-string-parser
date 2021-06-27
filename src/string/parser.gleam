@@ -34,13 +34,14 @@
 ////    * [`take_if_and_while`](#take_if_and_while)
 ////
 
+import gleam/bool.{Bool}
 import gleam/float.{Float}
 import gleam/function
 import gleam/int.{Int}
 import gleam/list.{Continue, Stop}
 import gleam/option.{None, Option, Some}
 import gleam/pair
-import gleam/result
+import gleam/result.{Result}
 import gleam/string.{String}
 
 // TYPES -----------------------------------------------------------------------
