@@ -34,15 +34,15 @@
 ////    * [`take_if_and_while`](#take_if_and_while)
 ////
 
-import gleam/bool.{Bool}
-import gleam/float.{Float}
+import gleam/bool
+import gleam/float
 import gleam/function
-import gleam/int.{Int}
+import gleam/int
 import gleam/list.{Continue, Stop}
 import gleam/option.{None, Option, Some}
 import gleam/pair
-import gleam/result.{Result}
-import gleam/string.{String}
+import gleam/result
+import gleam/string
 
 // TYPES -----------------------------------------------------------------------
 /// <div style="text-align: right;">
