@@ -1219,9 +1219,9 @@ pub fn one_of(parsers: List(Parser(a))) -> Parser(a) {
 
   Parser(fn(input) {
     list.fold_until(
-      parsers,
-      initial_error,
-      fn(parser, _) {
+      over: parsers,
+      from: initial_error,
+      with: fn(_, parser) {
         let result = runwrap(parser, input)
 
         case result.is_ok(result) {
