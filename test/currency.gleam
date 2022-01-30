@@ -1,6 +1,6 @@
-import gleam/float.{Float}
+import gleam/float
 import gleam/result
-import gleam/should
+import gleeunit/should
 import string/parser.{Parser}
 import gleam/list
 

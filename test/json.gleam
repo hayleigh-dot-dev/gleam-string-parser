@@ -1,10 +1,10 @@
-import gleam/bool.{Bool}
-import gleam/float.{Float}
+import gleam/bool
+import gleam/float
 import gleam/function
 import gleam/int
-import gleam/list.{List}
-import gleam/should
-import gleam/string.{String}
+import gleam/list
+import gleeunit/should
+import gleam/string
 import string/parser.{Parser}
 
 // TESTS -----------------------------------------------------------------------
