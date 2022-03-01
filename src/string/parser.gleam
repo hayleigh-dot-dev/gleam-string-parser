@@ -512,14 +512,12 @@ pub fn eof() -> Parser(Nil) {
 /// </div>
 ///
 pub fn string(value: String) -> Parser(String) {
-  let length = string.length(value)
   let expect = string.concat(["A string that starts with '", value, "'"])
 
   Parser(fn(input) {
-    case string.starts_with(input, value) {
-      True -> Ok(#(value, string.drop_left(input, length)))
-
-      False -> Error(Expected(expect, got: input))
+    case string.split_once(input, value) {
+      Ok(#("", rest)) -> Ok(#(input, rest))
+      _ -> Error(Expected(expect, got: input))
     }
   })
 }
